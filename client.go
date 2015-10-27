@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-const (
-	numConnections = 5 // number of connections in the collection pool
-)
-
 var _ APNSClient = &Client{}
 
 // APNSClient is an APNS client.
@@ -34,6 +30,7 @@ type Client struct {
 	CertificateBase64 string
 	KeyFile           string
 	KeyBase64         string
+	NumConnections    int
 	certificate       tls.Certificate
 	apnsConnection    *tls.Conn
 	pool              *ConnectionPool
@@ -46,6 +43,7 @@ func BareClient(gateway, certificateBase64, keyBase64 string) (c *Client) {
 	c.Gateway = gateway
 	c.CertificateBase64 = certificateBase64
 	c.KeyBase64 = keyBase64
+	c.NumConnections = 5
 	return
 }
 
@@ -56,6 +54,7 @@ func NewClient(gateway, certificateFile, keyFile string) (c *Client) {
 	c.Gateway = gateway
 	c.CertificateFile = certificateFile
 	c.KeyFile = keyFile
+	c.NumConnections = 5
 	return
 }
 
@@ -146,7 +145,7 @@ func (client *Client) getConnectionPool() (*ConnectionPool, error) {
 	if err != nil {
 		return nil, err
 	} else {
-		client.pool = NewConnectionPool(numConnections, client.Gateway, client.certificate)
+		client.pool = NewConnectionPool(client.NumConnections, client.Gateway, client.certificate)
 	}
 
 	return client.pool, err
